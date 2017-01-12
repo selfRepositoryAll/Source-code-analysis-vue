@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div id="btn">
+    <p>{{name}}</p>
+    <p>{{data}}</p>
+    <button @click="handleClick">button</button>
+</div>
+</body>
+</html>
+<script>
+    var app=document.getElementById('btn')
+    //%c  是比较加的
+    console.log(`%c ${app.outerHTML}`,'background:red;color:#fff')
+    console.log('22')
+</script>
+<script src="./vue.js"></script>
+<script>
+    new Vue({
+        el: '#btn',
+        data: {
+            name: 'vue解析',
+            count:99,
+        },
+        methods: {
+            handleClick(){//react实现这个功能需要用到 setState
+                this.name = 'vue解析成功了'
+            }
+        },
+        created(){
+        console.log('created')
+        },
+        computed:{
+            data(){
+                return this.count*2
+            }
+        }
+    })
+
+
+</script>
