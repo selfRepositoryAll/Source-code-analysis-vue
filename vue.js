@@ -359,6 +359,7 @@
          * Define a property.
          */
         function def(obj, key, val, enumerable) {
+            // 通过def
             Object.defineProperty(obj, key, {
                 value: val,
                 enumerable: !!enumerable,
@@ -704,10 +705,12 @@
          * collect dependencies and dispatches updates.
          */
         var Observer = function Observer(value) {
+            // 对每个对象都
             this.value = value;
-            this.dep = new Dep();
+            this.dep = new Dep(); // Observer实例上有个dep的属性，他的属性值是dep的实例
             this.vmCount = 0;
-            def(value, '__ob__', this);
+            def(value, '__ob__', this);//this是Observer的实例 有私有的属性和方法
+            /*通过 def这个方法结果是增加了一个属性__ob__:this(私有的属性三个value,dep,vmcount和方法)*/
             if (Array.isArray(value)) {
                 var augment = hasProto
                     ? protoAugment
@@ -769,18 +772,19 @@
          * returns the new observer if successfully observed,
          * or the existing observer if the value already has one.
          */
-        function observe(value, asRootData) {
-            if (!isObject(value)) {
+        function observe(value, asRootData) { //观察
+            if (!isObject(value)) {//
                 return
             }
             var ob;
             if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
                 ob = value.__ob__;
-            } else if (
+            } else if (// observerState.shouldConvert  :true
                 observerState.shouldConvert && !isServerRendering() &&
                 (Array.isArray(value) || isPlainObject(value)) &&
                 Object.isExtensible(value) && !value._isVue
             ) {
+                console.log(!isServerRendering())
                 ob = new Observer(value);
             }
             if (asRootData && ob) {
@@ -797,7 +801,7 @@
                                    val,
                                    customSetter) {
             var dep = new Dep();
-
+            debugger
             var property = Object.getOwnPropertyDescriptor(obj, key);
             if (property && property.configurable === false) {
                 return
@@ -807,11 +811,12 @@
             var getter = property && property.get;
             var setter = property && property.set;
 
-            var childOb = observe(val);
+            var childOb = observe(val);//val 是每个属性
             Object.defineProperty(obj, key, {
                 enumerable: true,
                 configurable: true,
                 get: function reactiveGetter() {
+                    //重点
                     var value = getter ? getter.call(obj) : val;
                     if (Dep.target) {
                         dep.depend();
@@ -1953,9 +1958,9 @@
         function initData(vm) {
             var data = vm.$options.data;
             data = vm._data = typeof data === 'function'
-                ? data.call(vm)
+                ? data.call(vm)//如果是函数直接就
                 : data || {};
-            if (!isPlainObject(data)) {
+            if (!isPlainObject(data)) {//Object.prototype.toString.call()
                 data = {};
                 "development" !== 'production' && warn(
                     'data functions should return an object:\n' +
@@ -1965,6 +1970,7 @@
             }
             // proxy data on instance
             var keys = Object.keys(data);
+            debugger
             var props = vm.$options.props;
             var i = keys.length;
             while (i--) {
@@ -2110,7 +2116,7 @@
         }
 
         function proxy(vm, key) {
-            debugger
+            debugger  //key 属性名
             if (!isReserved(key)) {
                 //vm 是vue的那个实例 key是handle
                 Object.defineProperty(vm, key, {
