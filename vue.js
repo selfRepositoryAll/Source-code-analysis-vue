@@ -610,7 +610,7 @@
             // stablize the subscriber list first
             var subs = this.subs.slice();
             for (var i = 0, l = subs.length; i < l; i++) {
-                subs[i].update();
+                subs[i].update();//subs[i] 是一个Watch的实例 实例有个update的方法
             }
         };
 
@@ -621,6 +621,7 @@
         var targetStack = [];
 
         function pushTarget(_target) {
+            debugger
             if (Dep.target) {
                 targetStack.push(Dep.target);
             }
@@ -706,9 +707,11 @@
          */
         var Observer = function Observer(value) {
             // 对每个对象都
+            debugger // this 是obv
             this.value = value;
             this.dep = new Dep(); // Observer实例上有个dep的属性，他的属性值是dep的实例
-            this.vmCount = 0;
+            this.vmCount = 0;// 看数据是否被watcher
+            // 第一次运行 只会对data 的数据这个对象进行监控
             def(value, '__ob__', this);//this是Observer的实例 有私有的属性和方法
             /*通过 def这个方法结果是增加了一个属性__ob__:this(私有的属性三个value,dep,vmcount和方法)*/
             if (Array.isArray(value)) {
@@ -717,7 +720,7 @@
                     : copyAugment;
                 augment(value, arrayMethods, arrayKeys);
                 this.observeArray(value);
-            } else {
+            } else {// 如果是对象的话 还要继续对下面的属性增加 getter 和setter
                 this.walk(value);
             }
         };
@@ -728,6 +731,7 @@
          * value type is Object.
          */
         Observer.prototype.walk = function walk(obj) {
+            debugger
             var keys = Object.keys(obj);
             for (var i = 0; i < keys.length; i++) {
                 defineReactive$$1(obj, keys[i], obj[keys[i]]);
@@ -773,10 +777,10 @@
          * or the existing observer if the value already has one.
          */
         function observe(value, asRootData) { //观察
-            if (!isObject(value)) {//
+            if (!isObject(value)) {// 不是一个对象就返回
                 return
             }
-            var ob;
+            var ob;//这个就是数据 有没有被obverser 同时还要看是不是实例 不是实例还不行
             if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
                 ob = value.__ob__;
             } else if (// observerState.shouldConvert  :true
@@ -785,7 +789,7 @@
                 Object.isExtensible(value) && !value._isVue
             ) {
                 console.log(!isServerRendering())
-                ob = new Observer(value);
+                ob = new Observer(value);// 就会去 obverser
             }
             if (asRootData && ob) {
                 ob.vmCount++;
@@ -796,11 +800,11 @@
         /**
          * Define a reactive property on an Object.
          */
-        function defineReactive$$1(obj,
+        function defineReactive$$1(obj, //在对象上定义一个反应属性。
                                    key,
                                    val,
                                    customSetter) {
-            var dep = new Dep();
+            var dep = new Dep();// 这是通用的 当属性改变的时候 通过watch去更新
             debugger
             var property = Object.getOwnPropertyDescriptor(obj, key);
             if (property && property.configurable === false) {
@@ -811,16 +815,18 @@
             var getter = property && property.get;
             var setter = property && property.set;
 
-            var childOb = observe(val);//val 是每个属性
+            var childOb = observe(val);//val 是每个属性 observe(val) 不是直接放回就返回
+            //observe 最终要调用的是 Object.defineProperty这个方法 所以不是对象是直接返回
             Object.defineProperty(obj, key, {
                 enumerable: true,
                 configurable: true,
                 get: function reactiveGetter() {
                     //重点
+                    debugger
                     var value = getter ? getter.call(obj) : val;
-                    if (Dep.target) {
-                        dep.depend();
-                        if (childOb) {
+                    if (Dep.target) {//Dep.target =null Dep.target是可以好好研究的
+                        dep.depend(); //dep是这个局部作用域的
+                        if (childOb) {// 假如有子结点 继续去更跟新
                             childOb.dep.depend();
                         }
                         if (Array.isArray(value)) {
@@ -830,6 +836,7 @@
                     return value
                 },
                 set: function reactiveSetter(newVal) {
+                    debugger
                     var value = getter ? getter.call(obj) : val;
                     /* eslint-disable no-self-compare */
                     if (newVal === value || (newVal !== newVal && value !== value)) {
@@ -839,13 +846,14 @@
                     if ("development" !== 'production' && customSetter) {
                         customSetter();
                     }
+                    //setter 如果之前有getter
                     if (setter) {
                         setter.call(obj, newVal);
                     } else {
                         val = newVal;
                     }
-                    childOb = observe(newVal);
-                    dep.notify();
+                    childOb = observe(newVal);//看一下这个新值是不是还有孩子节点 递归去做就可以了
+                    dep.notify();//通知更新试图 我们需要知道在 notify :更新
                 }
             });
         }
@@ -1645,7 +1653,7 @@
                 // queue the flush
                 if (!waiting) {
                     waiting = true;
-                    nextTick(flushSchedulerQueue);
+                    nextTick(flushSchedulerQueue);//刷新调度程序队列
                 }
             }
         }
@@ -1655,7 +1663,7 @@
         var uid$2 = 0;
 
         /**
-         * A watcher parses an expression, collects dependencies,
+         * A watcher parses an expression, collects dependencies, 解析表达式 收集依赖关系
          * and fires callback when the expression value changes.
          * This is used for both the $watch() api and directives.
          */
@@ -1665,9 +1673,11 @@
                                        expOrFn,
                                        cb,
                                        options) {
-            this.vm = vm;
+            debugger
+            this.vm = vm;//这个我感觉是没有用处的 重点在下面这行
+            //this 是watch是实例  他妹的 这个就把wactch render 那个watcher 是自动过去 我们自己加的需要手动过去
             vm._watchers.push(this);
-            // options
+            // options是空的时候  lazy是false 会影响到 最后一行代码的运行
             if (options) {
                 this.deep = !!options.deep;
                 this.user = !!options.user;
@@ -1687,7 +1697,7 @@
             this.expression = expOrFn.toString();
             // parse expression for getter
             if (typeof expOrFn === 'function') {
-                this.getter = expOrFn;
+                this.getter = expOrFn; //watcher 的getter有这个方法
             } else {
                 this.getter = parsePath(expOrFn);
                 if (!this.getter) {
@@ -2115,7 +2125,7 @@
             };
         }
 
-        function proxy(vm, key) {
+        function proxy(vm, key) { // 所有的数据都通过 proxy这层 这层是做什么的
             debugger  //key 属性名
             if (!isReserved(key)) {
                 //vm 是vue的那个实例 key是handle
@@ -2529,6 +2539,7 @@
                 }
                 debugger
                 callHook(vm, 'beforeMount');
+                debugger //TODO 这边是更新的
                 vm._watcher = new Watcher(vm, function () {
                     vm._update(vm._render(), hydrating);
                 }, noop);
@@ -2541,14 +2552,14 @@
                 }
                 return vm
             };
-
+            //这个是讲页面真正替换的
             Vue.prototype._update = function (vnode, hydrating) {
                 var vm = this;
                 if (vm._isMounted) {
                     callHook(vm, 'beforeUpdate');
                 }
                 var prevEl = vm.$el;
-                var prevVnode = vm._vnode;
+                var prevVnode = vm._vnode;//vm vue的实例
                 var prevActiveInstance = activeInstance;
                 activeInstance = vm;
                 vm._vnode = vnode;
@@ -2565,7 +2576,7 @@
                     // updates
                     vm.$el = vm.__patch__(prevVnode, vnode);
                 }
-                activeInstance = prevActiveInstance;
+                activeInstance = prevActiveInstance;///Instance实例
                 // update __vue__ reference
                 if (prevEl) {
                     prevEl.__vue__ = null;
@@ -3128,7 +3139,7 @@
                 return nextTick(fn, this)
             };
 
-            Vue.prototype._render = function () {
+            Vue.prototype._render = function () { //这是watcher dep更新依赖
                 var vm = this;
                 var ref = vm.$options;
                 var render = ref.render;
@@ -3408,6 +3419,7 @@
                 initLifecycle(vm);
                 initEvents(vm);
                 callHook(vm, 'beforeCreate');
+                // 这个state是所有的 状态和 react的不是一个性质的 data props methods...很多
                 initState(vm);
                 callHook(vm, 'created');
                 initRender(vm);
@@ -3470,6 +3482,7 @@
 
         function initUse(Vue) {
             Vue.use = function (plugin) {
+                console.log('sue')
                 /* istanbul ignore if */
                 if (plugin.installed) {
                     return
@@ -3530,6 +3543,7 @@
                 var Sub = function VueComponent(options) {
                     this._init(options);
                 };
+                // 这个号 这个是只会继承共有的 私有的使用call就可以了
                 Sub.prototype = Object.create(Super.prototype);
                 Sub.prototype.constructor = Sub;
                 Sub.cid = cid++;
@@ -3963,6 +3977,7 @@
         }
 
         function setTextContent(node, text) {
+            // 就这个
             node.textContent = text;
         }
 
@@ -4480,6 +4495,7 @@
                         nodeOps.setTextContent(elm, '');
                     }
                 } else if (oldVnode.text !== vnode.text) {
+                    // 这个位置和react 一样 不管什么框架最后还是要用原生js去做
                     nodeOps.setTextContent(elm, vnode.text);
                 }
                 if (hasData) {
@@ -8614,6 +8630,7 @@
                         return this
                     }
                 } else if (el) {
+                    // 获取 outerhtml
                     template = getOuterHTML(el);
                 }
                 if (template) {

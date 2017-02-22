@@ -1,0 +1,25 @@
+
+
+*************重点的文章***********
+https://segmentfault.com/a/1190000004384515 非常好
+点击更新的时候
+会调用setter 你说这个setter做了什么呢
+通过所有的watcher更新 // 之前肯定很多对 这个属性 很多watcher订阅了这个属性 现在属性发生改变
+通知去watch更新
+
+但是watcher 是有一个watcher的queue（队列）
+其实vue的原理: 还是观察者模式  他妹的 只不过api不同而已
+
+概述:首先通过obverse (data) 假如他有子节点递归去订阅  订阅就是通过 obverse 一直到 Object.definedProtety
+
+属性重新赋值的时候 通过Object.definedProtety 的set 去dep.notiy(通知) 订阅者 watcher(内部有个update的方法) 就可以了，会自动更新
+
+
+
+watcher概念 有很多
+起码有这个render 这个概念 为什么呢？ 个人认为这是实现双向数据绑定的概念
+
+
+Observer: 数据的观察者，让数据对象的读写操作都处于自己的监管之下
+Watcher: 数据的订阅者，数据的变化会通知到Watcher，然后由Watcher进行相应的操作，例如更新视图
+Dep: Observer与Watcher的纽带，当数据变化时，会被Observer观察到，然后由Dep通知到Watche

@@ -6,6 +6,7 @@
 </head>
 <body>
 <div id="btn">
+    <pre><p>{{data}}</p></pre>
     <p>{{name}}</p>
     <p>{{data}}</p>
     <button @click="handleClick">button</button>
@@ -13,33 +14,43 @@
 </body>
 </html>
 <script>
-    var app=document.getElementById('btn')
+    var app = document.getElementById('btn')
     //%c  是比较加的
-    console.log(`%c ${app.outerHTML}`,'background:red;color:#fff')
+    console.log(`%c ${app.outerHTML}`, 'background:red;color:#fff')
     console.log('22')
 </script>
 <script src="./vue.js"></script>
 <script>
-    new Vue({
+    var app = new Vue({
         el: '#btn',
         data: {
             name: 'vue解析',
-            count:99,
+            count: 99,
+        },
+        watch: {
+            name:function (val, oldVal) {
+                console.log('new: %s, old: %s', val, oldVal)
+            }
         },
         methods: {
             handleClick(){//react实现这个功能需要用到 setState
-                this.name = 'vue解析成功了'
+                this.name = 'vue解析成功了' // 是_render watcher  这个去更新，这个是必须的 假如有watch这个属性的话 肯定还有其他的watch 去更新 我们可以操作
+                /* TODO count 看看那个watcher 是够更新*/
+       /*         this.data=999999 // 这边操作是没有用的
+                console.log('xxx')
+                console.log(this.data)*/
+            },
+            nameHandle(){
+                console.log(this.name)
             }
         },
         created(){
-        console.log('created')
+            console.log('created')
         },
-        computed:{
-            data(){
-                return this.count*2
+        computed: {
+            data(){// 会进入到watch中 是不是要watch数据的更新 render也是一个watcher起码有一个watcher
+                return this.count * 2
             }
-        }
+        },
     })
-
-
 </script>
