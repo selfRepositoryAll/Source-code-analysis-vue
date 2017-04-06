@@ -1,15 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="c18262cf-9a33-4e13-8458-b29d11a6fc8b" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/note" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/proxy.html" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/proxy.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/obverse.xmind" afterPath="$PROJECT_DIR$/obverse.xmind" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/vue.js" afterPath="$PROJECT_DIR$/vue.js" />
-    </list>
+    <list default="true" id="c18262cf-9a33-4e13-8458-b29d11a6fc8b" name="Default" comment="" />
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
     <ignored path="$PROJECT_DIR$/tmp/" />
@@ -199,7 +191,7 @@
   <component name="PropertiesComponent">
     <property name="settings.editor.selected.configurable" value="Settings.JavaScript" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../react" />
     <property name="ignore_missing_gitignore" value="true" />
     <property name="nodejs_interpreter_path" value="C:/Program Files/nodejs/node" />
     <property name="js.eslint.eslintPackage" value="" />
@@ -311,12 +303,12 @@
       <workItem from="1485069308582" duration="3143000" />
       <workItem from="1487507154068" duration="3016000" />
       <workItem from="1487551945758" duration="9509000" />
-      <workItem from="1487725106932" duration="3535000" />
+      <workItem from="1487725106932" duration="3605000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="39861000" />
+    <option name="totallyTimeSpent" value="39931000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1382" height="744" extended-state="0" />
