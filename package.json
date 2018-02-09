@@ -8,5 +8,16 @@
   "author": "",
   "license": "ISC",
   "keywords": [],
-  "description": ""
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/selfRepositoryAll/Source-code-analysis-vue.git"
+  },
+  "bugs": {
+    "url": "https://github.com/selfRepositoryAll/Source-code-analysis-vue/issues"
+  },
+  "homepage": "https://github.com/selfRepositoryAll/Source-code-analysis-vue#readme",
+  "dependencies": {
+    "vue": "^2.5.13"
+  }
 }

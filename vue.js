@@ -127,6 +127,7 @@
 
     /**
     * Simple bind, faster than native
+    // 改变原生bind 比原生更快
     */
     function bind$1(fn, ctx) {
       function boundFn(a) {
@@ -349,6 +350,7 @@
 
     /**
     * Check if a string starts with $ or _
+    检查是否已 $（）  和 _（下划线） 为开头
     */
     function isReserved(str) {
       var c = (str + '').charCodeAt(0);
@@ -360,6 +362,7 @@
     */
     function def(obj, key, val, enumerable) {
       // 通过def
+      // //debugger
       Object.defineProperty(obj, key, {
         value: val,
         enumerable: !!enumerable,
@@ -584,10 +587,13 @@
     var uid$1 = 0;
 
     /**
+    * DEP是一个可见的，可以有多个指令订阅它。
     * A dep is an observable that can have multiple
     * directives subscribing to it.
+    * Dependency
     */
     var Dep = function Dep() {
+      // uid$1
       this.id = uid$1++;
       this.subs = [];
     };
@@ -602,6 +608,7 @@
 
     Dep.prototype.depend = function depend() {
       if (Dep.target) {
+        // 当前Dep.target 依赖收集的目标是 肯定watcher ，
         Dep.target.addDep(this);
       }
     };
@@ -618,17 +625,23 @@
     // this is globally unique because there could be only one
     // watcher being evaluated at any time.
     Dep.target = null;
+    // 目标栈 存放
     var targetStack = [];
 
     function pushTarget(_target) {
-      ////debugger
+      // _target watcher实例
+      //debugger
+      // 一次对watcher处理 就把需要这个watcher 全部处理处理完
+      // 一个watcher 正在处理但是 有一个watcher需要处理，暂时先将之前的watcher存起来，占用一下
       if (Dep.target) {
         targetStack.push(Dep.target);
       }
+      // 是不是computed里面赋值
       Dep.target = _target;
     }
 
     function popTarget() {
+      // 拿出最后一个值
       Dep.target = targetStack.pop();
     }
 
@@ -708,14 +721,22 @@
     var Observer = function Observer(value) {
       // data 可以是函数 返回数组 或者对象
       // 对每个对象都
-      ////debugger // this 是obv
+      //debugger // this 是obv
       this.value = value;
-      //yangchongduo
       this.dep = new Dep(); // Observer实例上有个dep的属性，他的属性值是dep的实例
       this.vmCount = 0;// 看数据是否被watcher
       // 第一次运行 只会对data 的数据这个对象进行监控
+      //debugger
+      /**
+       * data 放在(new Observer()).value
+       * value.__ob__ == new Observer()
+       * value同时记载了 到底是哪个new Observer() （观察者）对这个数据进行观察
+       */
       def(value, '__ob__', this);//this是Observer的实例 有私有的属性和方法
+      // 意义是什么 为什么重新放在
+      
       /*通过 def这个方法结果是增加了一个属性__ob__:this(私有的属性三个value,dep,vmcount和方法)*/
+      //debugger
       if (Array.isArray(value)) {
         var augment = hasProto
           ? protoAugment
@@ -777,12 +798,14 @@
     * Attempt to create an observer instance for a value,
     * returns the new observer if successfully observed,
     * or the existing observer if the value already has one.
+    *  尝试创建一个值的观察者实例，如果成功观察，返回新的观察者，如果值已经有一个，则返回现有的观察者。 
     */
     function observe(value, asRootData) { //观察
       if (!isObject(value)) {// 不是一个对象就返回
         return
       }
       var ob;//这个就是数据 有没有被obverser 同时还要看是不是实例 不是实例还不行
+      // 也就是放在obverser 的实例
       if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
         ob = value.__ob__;
       } else if (// observerState.shouldConvert  :true
@@ -791,9 +814,16 @@
         Object.isExtensible(value) && !value._isVue
       ) {
         console.log(!isServerRendering())
-        ////debugger
+        //debugger
         // 这个需要看一下
         ob = new Observer(value);
+
+        /**
+         * 创建一个data的观察者实例 如果下面是value是对象的话 还会继续observe
+         * 同时对data 里面所有的属性设置了 get 和set  这个时候vm 中的key 也设置了
+         * 同时对data 已经data里面的属性 都各自建立了 new Dep()实例，用来收集每个属性的watcher 
+         */
+
         // 就会去 obverser
         // 整体数据观察者的实例
       }
@@ -810,8 +840,10 @@
       key,
       val,
       customSetter) {
+      //debugger
       var dep = new Dep();// 这是通用的 当属性改变的时候 通过watch去更新
-      ////debugger
+      // new Dep() 内置id 可以记载有几个deps
+      //debugger
       var property = Object.getOwnPropertyDescriptor(obj, key);
       if (property && property.configurable === false) {
         return
@@ -820,6 +852,7 @@
       // cater for pre-defined getter/setters
       var getter = property && property.get;
       var setter = property && property.set;
+      // 有getter 就getter执行，没有getter就不执行 859行
 
       var childOb = observe(val);//val 是每个属性 observe(val) 不是直接放回就返回
       //observe 最终要调用的是 Object.defineProperty这个方法 所以不是对象是直接返回
@@ -827,10 +860,12 @@
         enumerable: true,
         configurable: true,
         get: function reactiveGetter() {
-          //重点
-          ////debugger
+          //debugger
+          // 暂时没有看到getter
           var value = getter ? getter.call(obj) : val;
           if (Dep.target) {//Dep.target =null Dep.target是可以好好研究的
+            // 何时赋值的
+            //  Dep.target 是当前 watcher ，
             dep.depend(); //dep是这个局部作用域的
             if (childOb) {// 假如有子结点 继续去更跟新
               childOb.dep.depend();
@@ -842,7 +877,7 @@
           return value
         },
         set: function reactiveSetter(newVal) {
-          ////debugger
+          debugger
           var value = getter ? getter.call(obj) : val;
           /* eslint-disable no-self-compare */
           if (newVal === value || (newVal !== newVal && value !== value)) {
@@ -900,6 +935,7 @@
     * Delete a property and trigger change if necessary.
     */
     function del(obj, key) {
+      //debugger
       var ob = obj.__ob__;
       if (obj._isVue || (ob && ob.vmCount)) {
         "development" !== 'production' && warn(
@@ -1074,6 +1110,7 @@
     */
     strats.watch = function (parentVal, childVal) {
       /* istanbul ignore if */
+      //debugger
       if (!childVal) {
         return parentVal
       }
@@ -1548,7 +1585,7 @@
       };
 
       initProxy = function initProxy(vm) {
-        ////debugger
+        //debugger
         if (hasProxy) {
           // determine which proxy handler to use
           var options = vm.$options;
@@ -1556,6 +1593,8 @@
             ? getHandler
             : hasHandler;
           // 2:没有render就是用Proxy
+          //debugger
+          // new Proxy(vm, handlers)是原生代理 
           vm._renderProxy = new Proxy(vm, handlers);
         } else {
           vm._renderProxy = vm;
@@ -1640,8 +1679,10 @@
     * Push a watcher into the watcher queue.
     * Jobs with duplicate IDs will be skipped unless it's
     * pushed when the queue is being flushed.
+    将观察者推入观察队列。除非在队列被刷新时被推送，否则将跳过具有重复ID的作业。
     */
     function queueWatcher(watcher) {
+      //debugger
       var id = watcher.id;
       if (has$1[id] == null) {
         has$1[id] = true;
@@ -1673,15 +1714,19 @@
     * and fires callback when the expression value changes.
     * This is used for both the $watch() api and directives.
     */
-
+    // var watcher = new Watcher(owner, getter, noop, {
+    //   lazy: true
+    // });
     //TODO
     var Watcher = function Watcher(vm,
       expOrFn,
       cb,
       options) {
-      ////debugger
       this.vm = vm;//这个我感觉是没有用处的 重点在下面这行
-      //this 是watch是实例  他妹的 这个就把wactch render 那个watcher 是自动过去 我们自己加的需要手动过去
+      //this 是watch是实例  
+      // computed 创建一个watcher实例同时放在vm
+      // vm承载了所有的东西 
+      // computed 和watcher 一样
       vm._watchers.push(this);
       // options是空的时候  lazy是false 会影响到 最后一行代码的运行
       if (options) {
@@ -1693,6 +1738,7 @@
         this.deep = this.user = this.lazy = this.sync = false;
       }
       this.cb = cb;
+      // 记载有个wather
       this.id = ++uid$2; // uid for batching
       this.active = true;
       this.dirty = this.lazy; // for lazy watchers
@@ -1704,6 +1750,7 @@
       // parse expression for getter
       if (typeof expOrFn === 'function') {
         this.getter = expOrFn; //watcher 的getter有这个方法
+        // 每个watcher上 getter 放着函数
       } else {
         this.getter = parsePath(expOrFn);
         if (!this.getter) {
@@ -1717,6 +1764,7 @@
           );
         }
       }
+      // with 语句是 直接执行 this.get()
       this.value = this.lazy
         ? undefined
         : this.get();
@@ -1726,8 +1774,21 @@
     * Evaluate the getter, and re-collect dependencies.
     */
     Watcher.prototype.get = function get() {
-      pushTarget(this);
+      debugger
+      pushTarget(this); //  这个目的是什么？
+      // ```
+      // function () {
+      //   vm._update(vm._render(), hydrating);
+      // }
+      // ```
+      // Vue.prototype._render 3253
+      // (function() {
+      //   with(this){return _c('div',{attrs:{"id":"btn"}},[_c('p',[_v(_s(count))]),_v(" "),_c('p',[_v(_s(test1))]),_v(" "),_c('button',{on:{"click":handleClick}},[_v("button")])])}
+      //   })
       var value = this.getter.call(this.vm, this.vm);
+      // 得到watcher 和computed 的属性的值
+      // debugger
+      // computed里面的函数执行 将this改变为vm的实例 同时将vm的实例传递进去
       // "touch" every property so they are all tracked as
       // dependencies for deep watching
       if (this.deep) {
@@ -1740,10 +1801,18 @@
 
     /**
     * Add a dependency to this directive.
+       向该指令添加一个依赖项。
     */
     Watcher.prototype.addDep = function addDep(dep) {
+      // 去重 watcher
       var id = dep.id;
       if (!this.newDepIds.has(id)) {
+        // ```
+        // this.deps = [];
+        // this.newDeps = [];
+        // this.depIds = new _Set();
+        // this.newDepIds = new _Set()
+        // ```
         this.newDepIds.add(id);
         this.newDeps.push(dep);
         if (!this.depIds.has(id)) {
@@ -1757,7 +1826,7 @@
     */
     Watcher.prototype.cleanupDeps = function cleanupDeps() {
       var this$1 = this;
-
+      //debugger
       var i = this.deps.length;
       while (i--) {
         var dep = this$1.deps[i];
@@ -1786,6 +1855,7 @@
       } else if (this.sync) {
         this.run();
       } else {
+        debugger
         queueWatcher(this);
       }
     };
@@ -1847,6 +1917,8 @@
 
       var i = this.deps.length;
       while (i--) {
+        // 主要是为了触发最初的watcher （最大的watcher 增加在每个属性的deps）
+        // 将最大的watcher 收集为每个属性的依赖
         this$1.deps[i].depend();
       }
     };
@@ -1914,17 +1986,20 @@
     /*  */
 
     function initState(vm) {
-      // //debugger
+      //debugger
       vm._watchers = [];
       var opts = vm.$options;
       //  是组件
       if (opts.props) {
+        // 将props放在 vm this
         initProps(vm, opts.props);
       }
       if (opts.methods) {
+        // 将Methods 放在vm this上
         initMethods(vm, opts.methods);
       }
       if (opts.data) {
+        //
         initData(vm);
       } else {
         observe(vm._data = {}, true /* asRootData */);
@@ -1933,7 +2008,6 @@
         initComputed(vm, opts.computed);
       }
       if (opts.watch) {
-        ////debugger
         initWatch(vm, opts.watch);
       }
     }
@@ -1941,6 +2015,7 @@
     var isReservedProp = { key: 1, ref: 1, slot: 1 };
 
     function initProps(vm, props) {
+      //debugger
       var propsData = vm.$options.propsData || {};
       var keys = vm.$options._propKeys = Object.keys(props);
       var isRoot = !vm.$parent;
@@ -1975,6 +2050,7 @@
     }
 
     function initData(vm) {
+      //debugger
       var data = vm.$options.data;
       /**
       * 这边也非常重要。 因为后续所有的数据操作 都是操作vm._data的
@@ -1996,6 +2072,7 @@
       var props = vm.$options.props;
       var i = keys.length;
       while (i--) {
+        // 判断 props 和data 不能同时有 props 有了data 不能申明
         if (props && hasOwn(props, keys[i])) {
           "development" !== 'production' && warn(
             "The data property \"" + (keys[i]) + "\" is already declared as a prop. " +
@@ -2003,11 +2080,15 @@
             vm
           );
         } else {
+          // 通过个已经将 data里面的所有属性 放在 this. 不管里面的属性 第一层
+          //debugger
           proxy(vm, keys[i]);
         }
       }
-      ////debugger
+      //debugger
       // observe data
+    // 将data里面的属性全部 通过Object.defineProperties 定了的getter setter 一旦对这些属性操作就会通过做一些事情
+    // 这就是
       observe(data, true /* asRootData */);
     }
     //计算共享定义
@@ -2019,6 +2100,7 @@
     };
 
     function initComputed(vm, computed) {
+      
       for (var key in computed) {
         /* istanbul ignore if */
         if ("development" !== 'production' && key in vm) {
@@ -2042,20 +2124,33 @@
             ? bind$1(userDef.set, vm)
             : noop;
         }
+        // debugger
+        // 对 computed的值 设置了getter 设置了一个watcher 
         Object.defineProperty(vm, key, computedSharedDefinition);
       }
     }
 
     function makeComputedGetter(getter, owner) {
-      //getter 是Computed的函数 owner是那个实例  TODO
+
+      //getter 是Computed的函数 owner是那个实例  vm实例
+      // 创建一个watcher 
       var watcher = new Watcher(owner, getter, noop, {
         lazy: true
       });
+
       return function computedGetter() {
+        // debugger
+        console.log('222');
         if (watcher.dirty) {
+          // 函数将会执行设置
+          // 将个watcher 的依赖放在 所依赖的deps上， 同时执行
           watcher.evaluate();
         }
         if (Dep.target) {
+          debugger
+          // 这边没有看懂
+          //这边再次就行是为了手机 watcher上面的watcher（最大的watcher），
+          // 每个属性都增加一个watcher（共同的watcher vm最大的watcher） 
           watcher.depend();
         }
         return watcher.value
@@ -2076,7 +2171,7 @@
     }
 
     function initWatch(vm, watch) {
-      ////debugger
+      //debugger
       for (var key in watch) {
         var handler = watch[key];
         if (Array.isArray(handler)) {
@@ -2102,6 +2197,7 @@
     }
 
     function stateMixin(Vue) {
+      //debugger
       // flow somehow has problems with directly declared definition object
       // when using Object.defineProperty, so we have to procedurally build up
       // the object here.
@@ -2118,6 +2214,7 @@
           );
         };
       }
+
       Object.defineProperty(Vue.prototype, '$data', dataDef);
 
       Vue.prototype.$set = set$1;
@@ -2126,6 +2223,7 @@
       Vue.prototype.$watch = function (expOrFn,
         cb,
         options) {
+        //debugger
         var vm = this;
         options = options || {};
         options.user = true;
@@ -2143,9 +2241,9 @@
     * 例子 data里面的 name 属性 vue 实例上也会有
     */
     function proxy(vm, key) { // 所有的数据都通过 proxy这层 这层是做什么的
-      ////debugger  //key 属性名
+      //debugger  //key 属性名
       if (!isReserved(key)) {
-        //vm 是vue的那个实例 key是handle
+        //vm 是vue的那个实例 key是handle 此时 key 并没有值
         Object.defineProperty(vm, key, {
           configurable: true,
           enumerable: true,
@@ -2154,6 +2252,7 @@
             return vm._data[key]
           },
           set: function proxySetter(val) {
+            debugger
             // 在methods方法里面设置 this.name 的时候就会 触发
             vm._data[key] = val;
           }
@@ -2207,6 +2306,7 @@
     };
 
     function createTextVNode(val) {
+      debugger
       return new VNode(undefined, undefined, undefined, String(val))
     }
 
@@ -2265,6 +2365,7 @@
       add,
       remove$$1,
       vm) {
+      //debugger
       var name, cur, old, fn, event, capture, once;
       for (name in on) {
         cur = on[name];
@@ -2412,6 +2513,7 @@
     /*  */
 
     function initEvents(vm) {
+      //debugger
       // 先创建一个对象
       vm._events = Object.create(null);
       vm._hasHookEvent = false;
@@ -2545,6 +2647,7 @@
     function lifecycleMixin(Vue) {
       Vue.prototype._mount = function (el,
         hydrating) {
+          debugger
         var vm = this;
         vm.$el = el;
         if (!vm.$options.render) {
@@ -2566,9 +2669,11 @@
             }
           }
         }
-        ////debugger
+        debugger
         callHook(vm, 'beforeMount');
-        ////debugger //TODO 这边是更新的
+        debugger //TODO 这边是更新的
+        // 创建最大的vue watcher 实例
+        debugger
         vm._watcher = new Watcher(vm, function () {
           vm._update(vm._render(), hydrating);
         }, noop);
@@ -2583,7 +2688,7 @@
       };
       //这个是讲页面真正替换的
       Vue.prototype._update = function (vnode, hydrating) {
-        //debugger
+        ////debugger
         var vm = this;
         if (vm._isMounted) {
           callHook(vm, 'beforeUpdate');
@@ -3061,6 +3166,7 @@
       data,
       children,
       normalizationType) {
+        debugger
       if (data && data.__ob__) {
         "development" !== 'production' && warn(
           "Avoid using observed data object as vnode data: " + (JSON.stringify(data)) + "\n" +
@@ -3140,7 +3246,7 @@
     /*  */
 
     function initRender(vm) {
-      //debugger
+      debugger
       vm.$vnode = null; // the placeholder node in parent tree
       vm._vnode = null; // the root of the child tree
       vm._staticTrees = null;
@@ -3153,28 +3259,30 @@
       // args order: tag, data, children, normalizationType, alwaysNormalize
       // internal version is used by render functions compiled from templates
       vm._c = function (a, b, c, d) {
-        ////debugger
+        debugger
         return createElement(vm, a, b, c, d, false);
       };
       // normalization is always applied for the public version, used in
       // user-written render functions.
       vm.$createElement = function (a, b, c, d) {
-        ////debugger
+        debugger
         return createElement(vm, a, b, c, d, true);
       };
       if (vm.$options.el) {
-        ////debugger
+        debugger
+        // this是$mount vm的实例
         vm.$mount(vm.$options.el);
       }
     }
 
     function renderMixin(Vue) {
       Vue.prototype.$nextTick = function (fn) {
+        // 更新完数据之后获取最新的dom
         return nextTick(fn, this)
       };
 
       Vue.prototype._render = function () { //这是watcher dep更新依赖
-        //debugger
+        debugger
         var vm = this;
         var ref = vm.$options;
         var render = ref.render;
@@ -3445,22 +3553,25 @@
             vm
           );
         }
-        ////debugger
+        //debugger
+        // 设置代理
         /* istanbul ignore else */
         {
           initProxy(vm);
         }
+        //debugger
         // expose real self
         vm._self = vm;
         initLifecycle(vm);
         initEvents(vm);
+        // callHook 生命周期的钩子
         callHook(vm, 'beforeCreate');
-        ////debugger
+        //debugger
         // 这个state是所有的 状态和 react的不是一个性质的 data props methods...很多
         initState(vm);
-        ////debugger
-        callHook(vm, 'created');
         //debugger
+        callHook(vm, 'created');
+        debugger
         initRender(vm);
       };
     }
@@ -3502,21 +3613,28 @@
       }
       return options
     }
-
+    // 这个就是vue的实例
     function Vue$3(options) {
       if ("development" !== 'production' && !(this instanceof Vue$3)) {
         warn('Vue is a constructor and should be called with the `new` keyword');
       }
-      ////debugger //1:首先初始化所有
+      //debugger //1:首先初始化所有
       this._init(options);
     }
-
+    //debugger
+    // 在vue原型增加一个_init方法；
     initMixin(Vue$3);
-    // //debugger
+    //debugger
+    // 增加一个watch方法
     stateMixin(Vue$3);
-    // //debugger
+    //debugger
+    // 增加on off emit once方法
     eventsMixin(Vue$3);
+    //debugger
+    // 在增加生命周期的一些方法
     lifecycleMixin(Vue$3);
+    //debugger
+    // 增加next render方法；
     renderMixin(Vue$3);
 
     /*  */
@@ -3968,7 +4086,7 @@
       return el
     }
 
-    /*  */
+    /* 创建所有的结构 */
 
     function createElement$1(tagName, vnode) {
       var elm = document.createElement(tagName);
@@ -4018,7 +4136,6 @@
     }
 
     function setTextContent(node, text) {
-      // 就这个
       node.textContent = text;
     }
 
@@ -4176,7 +4293,7 @@
       var inPre = 0;
 
       function createElm(vnode, insertedVnodeQueue, parentElm, refElm, nested) {
-        debugger
+        //debugger
         vnode.isRootInsert = !nested; // for transition enter check
         if (createComponent(vnode, insertedVnodeQueue, parentElm, refElm)) {
           return
@@ -4415,7 +4532,7 @@
       * 非常重要
       */
       function updateChildren(parentElm, oldCh, newCh, insertedVnodeQueue, removeOnly) {
-        //debugger
+        ////debugger
         var oldStartIdx = 0;
         var newStartIdx = 0;
         var oldEndIdx = oldCh.length - 1;
@@ -4523,7 +4640,7 @@
         if (hasData && isPatchable(vnode)) {
           for (i = 0; i < cbs.update.length; ++i) {
             // 非常重要 这就 对比跟新数据
-            //debugger
+            ////debugger
             cbs.update[i](oldVnode, vnode);
           }
           if (isDef(i = data.hook) && isDef(i = i.update)) {
@@ -4651,7 +4768,7 @@
       * 这个是将前后的虚拟dom 进行对比
       */
       return function patch(oldVnode, vnode, hydrating, removeOnly, parentElm, refElm) {
-        debugger
+        //debugger
         if (!vnode) {
           if (oldVnode) {
             invokeDestroyHook(oldVnode);
@@ -4702,7 +4819,7 @@
             // replacing existing element
             elm = oldVnode.elm;
             parent = nodeOps.parentNode(elm);
-            debugger
+            //debugger
             createElm(vnode, insertedVnodeQueue, parent, nodeOps.nextSibling(elm));
 
             if (vnode.parent) {
@@ -4852,7 +4969,7 @@
     * @param {*} vnode
     */
     function updateAttrs(oldVnode, vnode) {
-      //debugger
+      ////debugger
       if (!oldVnode.data.attrs && !vnode.data.attrs) {
         return
       }
@@ -4893,7 +5010,7 @@
     * 属性不同就要设置
     */
     function setAttr(el, key, value) {
-      //debugger
+      ////debugger
       if (isBooleanAttr(key)) {
         // set attribute for blank value
         // e.g. <option disabled>Select one</option>
@@ -6275,7 +6392,7 @@
     // wrap mount
     Vue$3.prototype.$mount = function (el,
       hydrating) {
-      ////debugger
+      debugger
       el = el && inBrowser ? query(el) : undefined;
       return this._mount(el, hydrating)
     };
@@ -6391,6 +6508,7 @@
     var startTagOpen = new RegExp('^<' + qnameCapture);
     var startTagClose = /^\s*(\/?)>/;
     var endTag = new RegExp('^<\\/' + qnameCapture + '[^>]*>');
+    // 这个reg 不错
     var doctype = /^<!DOCTYPE [^>]+>/i;
     var comment = /^<!--/;
     var conditionalComment = /^<!\[/;
@@ -6440,7 +6558,7 @@
     }
 
     function parseHTML(html, options) {
-      // //debugger
+      debugger
       var stack = [];
       var expectHTML = options.expectHTML;
       var isUnaryTag$$1 = options.isUnaryTag || no;
@@ -6491,7 +6609,7 @@
               parseEndTag(endTagMatch[0], endTagMatch[1], curIndex, index);
               continue
             }
-            ////debugger
+            //////debugger
             // Start tag:
             /**
             * parseStartTag() 非常重要
@@ -6572,7 +6690,7 @@
       */
 
       function parseStartTag() {
-        // //debugger
+        ////debugger
         var start = html.match(startTagOpen);
         if (start) {
           var match = {
@@ -6598,7 +6716,7 @@
       }
 
       function handleStartTag(match) {
-        // //debugger
+        ////debugger
         var tagName = match.tagName;
         var unarySlash = match.unarySlash;
 
@@ -7081,7 +7199,7 @@
     */
     function parse(template,
       options) {
-      //debugger
+      debugger
       warn$1 = options.warn || baseWarn;
       platformGetTagNamespace = options.getTagNamespace || no;
       platformMustUseProp = options.mustUseProp || no;
@@ -7097,13 +7215,13 @@
       var inVPre = false;
       var inPre = false;
       var warned = false;
-      // //debugger
+      ////debugger
       parseHTML(template, {
         expectHTML: options.expectHTML,
         isUnaryTag: options.isUnaryTag,
         shouldDecodeNewlines: options.shouldDecodeNewlines,
         start: function start(tag, attrs, unary) {
-          //debugger
+          ////debugger
           // check namespace.
           // inherit parent ns if there is one
           var ns = (currentParent && currentParent.ns) || platformGetTagNamespace(tag);
@@ -7237,7 +7355,7 @@
         },
 
         end: function end() {
-          // //debugger
+          // ////debugger
           // remove trailing whitespace
           var element = stack[stack.length - 1];
           var lastNode = element.children[element.children.length - 1];
@@ -7843,6 +7961,8 @@
     var onceCount;
     var currentOptions;
 
+    // 生成 with语法的关键位置
+
     function generate(ast,
       options) {
       // save previous staticRenderFns so generate calls can be nested
@@ -7856,7 +7976,7 @@
       dataGenFns = pluckModuleFunction(options.modules, 'genData');
       platformDirectives$1 = options.directives || {};
       isPlatformReservedTag$1 = options.isReservedTag || no;
-      //debugger
+      ////debugger
       var code = ast ? genElement(ast) : '_c("div")';
       staticRenderFns = prevStaticRenderFns;
       onceCount = prevOnceCount;
@@ -8207,13 +8327,13 @@
     */
     function compile$1(template,
       options) {
-      //debugger
+      debugger
       var ast = parse(template.trim(), options);
-      //debugger
+      debugger
       optimize(ast, options);
-      //debugger
+      debugger
       var code = generate(ast, options);
-      //debugger
+      debugger
       return {
         ast: ast,
         render: code.render,
@@ -8227,7 +8347,7 @@
     var prohibitedKeywordRE = new RegExp('\\b' + (
       'do,if,for,let,new,try,var,case,else,with,await,break,catch,class,const,' +
       'super,throw,while,yield,delete,export,import,return,switch,default,' +
-      'extends,finally,continue,////debugger,function,arguments'
+      'extends,finally,continue,//////debugger,function,arguments'
     ).split(',').join('\\b|\\b') + '\\b');
     // check valid identifier for v-for
     var identRE = /[A-Za-z_$][\w$]*/;
@@ -8618,7 +8738,7 @@
 
     function compile$$1(template,
       options) {
-      //debugger
+      debugger
       options = options
         ? extend(extend({}, baseOptions), options)
         : baseOptions;
@@ -8628,7 +8748,7 @@
     function compileToFunctions(template,
       options,
       vm) {
-      //debugger
+      debugger
       var _warn = (options && options.warn) || warn;
       // detect possible CSP restriction
       /* istanbul ignore if */
@@ -8654,9 +8774,10 @@
         return cache[key]
       }
       var res = {};
-      //debugger
+      debugger
       var compiled = compile$$1(template, options);
-      //debugger
+      debugger
+      // with字符串语句编程 函数
       res.render = makeFunction(compiled.render);
       var l = compiled.staticRenderFns.length;
       res.staticRenderFns = new Array(l);
@@ -8696,7 +8817,7 @@
     var mount = Vue$3.prototype.$mount;
     Vue$3.prototype.$mount = function (el,
       hydrating) {
-      //debugger
+      debugger
       el = el && query(el);
 
       /* istanbul ignore if */
@@ -8737,19 +8858,24 @@
           template = getOuterHTML(el);
         }
         if (template) {
+          debugger
+          // 作用是什么 编程成function
+          // 要解码的新行
           var ref = compileToFunctions(template, {
             warn: warn,
+            // 要解码的新行
             shouldDecodeNewlines: shouldDecodeNewlines,
             delimiters: options.delimiters
           }, this);
-          //debugger
+          debugger
           var render = ref.render;
+          // with语句
           var staticRenderFns = ref.staticRenderFns;
           options.render = render;
           options.staticRenderFns = staticRenderFns;
         }
       }
-      ////debugger
+      //////debugger
       return mount.call(this, el, hydrating)
     };
 

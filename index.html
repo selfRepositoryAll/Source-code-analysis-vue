@@ -5,15 +5,18 @@
   <meta charset="UTF-8">
   <title>Title</title>
 </head>
+<!-- <p>{{count}}</p> -->
 
 <body>
   <div id="btn">
+    <!-- <p>{{test1}}</p> -->
     <p>{{name}}</p>
     <button @click="handleClick">button</button>
   </div>
 </body>
-    <!-- <pre><p>{{data}}</p></pre> -->
-    <!-- <p>{{data}}</p> -->
+<!-- <pre><p>{{data}}</p></pre> -->
+<!-- <p>{{data}}</p> -->
+
 </html>
 <script>
   var app = document.getElementById('btn')
@@ -28,16 +31,20 @@
     data: {
       name: 'vue解析',
       count: 99,
+      obj: {
+        age: 10
+      }
     },
-    // watch: {
-    //   name: function (val, oldVal) {
-    //     console.log('3333');
-    //     console.log('new: %s, old: %s', val, oldVal)
-    //   }
-    // },
+    watch: {
+      name: function (val, oldVal) {
+        console.log('3333');
+        console.log('new: %s, old: %s', val, oldVal)
+      }
+    },
     methods: {
       handleClick() {//react实现这个功能需要用到 setState
-        this.name = 'vue解析成功了' // 是_render watcher  这个去更新，这个是必须的 假如有watch这个属性的话 肯定还有其他的watch 去更新 我们可以操作
+        // this.count += 1;
+        this.name = 'vue解析成功了' // 是_render watcher  这个去更新，这个是必须的 假如有watch这个属性的话 肯定还有其他的watch 去更新 我们可以操作;
         /* TODO count 看看那个watcher 是够更新*/
         /*         this.data=999999 // 这边操作是没有用的
                  console.log('xxx')
@@ -50,10 +57,12 @@
     // created() {
     //   console.log('created')
     // },
-    // computed: {
-      // data() {// 会进入到watch中 是不是要watch数据的更新 render也是一个watcher起码有一个watcher
+    computed: {
+      // test1() {// 会进入到watch中 是不是要watch数据的更新 render也是一个watcher起码有一个watcher
+      //   debugger
+      //   console.log('3333');
       //   return this.count * 2
       // }
-    // },
+    },
   })
 </script>
