@@ -2278,12 +2278,14 @@
       elm,
       context,
       componentOptions) {
+        debugger
       this.tag = tag;
       this.data = data;
       this.children = children;
       this.text = text;
       this.elm = elm;
       this.ns = undefined;
+      // 上下文
       this.context = context;
       this.functionalContext = undefined;
       this.key = data && data.key;
@@ -2688,7 +2690,7 @@
       };
       //这个是讲页面真正替换的
       Vue.prototype._update = function (vnode, hydrating) {
-        ////debugger
+        debugger
         var vm = this;
         if (vm._isMounted) {
           callHook(vm, 'beforeUpdate');
@@ -3197,6 +3199,7 @@
         ns = config.getTagNamespace(tag);
         if (config.isReservedTag(tag)) {
           // platform built-in elements
+          debugger
           vnode = new VNode(
             config.parsePlatformTagName(tag), data, children,
             undefined, undefined, context
@@ -4217,9 +4220,9 @@
     * Not type-checking this because this file is perf-critical and the cost
     * of making flow understand it is not worth it.
     */
-
+    // debugger
     var emptyNode = new VNode('', {}, []);
-
+    // debugger
     var hooks$1 = ['create', 'activate', 'update', 'remove', 'destroy'];
 
     function isUndef(s) {
@@ -4231,6 +4234,7 @@
     }
 
     function sameVnode(vnode1, vnode2) {
+      debugger
       return (
         vnode1.key === vnode2.key &&
         vnode1.tag === vnode2.tag &&
@@ -4291,15 +4295,16 @@
       }
 
       var inPre = 0;
-
+      // 创建真实的节点
       function createElm(vnode, insertedVnodeQueue, parentElm, refElm, nested) {
-        //debugger
+        debugger
         vnode.isRootInsert = !nested; // for transition enter check
         if (createComponent(vnode, insertedVnodeQueue, parentElm, refElm)) {
           return
         }
 
         var data = vnode.data;
+        // 存放的是一些真实的属性 id class style  data-属性 这样就可以在  4331
         var children = vnode.children;
         var tag = vnode.tag;
         if (isDef(tag)) {
@@ -4328,6 +4333,7 @@
           {
             createChildren(vnode, children, insertedVnodeQueue);
             if (isDef(data)) {
+              // 为每一个原生标签注册 更新style class data等各种方法
               invokeCreateHooks(vnode, insertedVnodeQueue);
             }
             // 这边是重复插入
@@ -4415,8 +4421,9 @@
         }
         return isDef(vnode.tag)
       }
-
+      // 这个位置是做什么的
       function invokeCreateHooks(vnode, insertedVnodeQueue) {
+        debugger
         for (var i$1 = 0; i$1 < cbs.create.length; ++i$1) {
           cbs.create[i$1](emptyNode, vnode);
         }
@@ -4532,7 +4539,8 @@
       * 非常重要
       */
       function updateChildren(parentElm, oldCh, newCh, insertedVnodeQueue, removeOnly) {
-        ////debugger
+        debugger
+        //old 指针 第一个
         var oldStartIdx = 0;
         var newStartIdx = 0;
         var oldEndIdx = oldCh.length - 1;
@@ -4554,6 +4562,7 @@
           } else if (isUndef(oldEndVnode)) {
             oldEndVnode = oldCh[--oldEndIdx];
           } else if (sameVnode(oldStartVnode, newStartVnode)) {
+            debugger
             patchVnode(oldStartVnode, newStartVnode, insertedVnodeQueue);
             oldStartVnode = oldCh[++oldStartIdx];
             newStartVnode = newCh[++newStartIdx];
@@ -4639,8 +4648,8 @@
         var ch = vnode.children;
         if (hasData && isPatchable(vnode)) {
           for (i = 0; i < cbs.update.length; ++i) {
-            // 非常重要 这就 对比跟新数据
-            ////debugger
+            // 非常重要 这就 对比跟新数据 只是更新属性  孩子
+            debugger
             cbs.update[i](oldVnode, vnode);
           }
           if (isDef(i = data.hook) && isDef(i = i.update)) {
@@ -4651,6 +4660,7 @@
           if (isDef(oldCh) && isDef(ch)) {
             if (oldCh !== ch) {
               // 更新虚拟dom 的孩子节点
+              debugger
               updateChildren(elm, oldCh, ch, insertedVnodeQueue, removeOnly);
             }
           } else if (isDef(ch)) {
@@ -4768,7 +4778,7 @@
       * 这个是将前后的虚拟dom 进行对比
       */
       return function patch(oldVnode, vnode, hydrating, removeOnly, parentElm, refElm) {
-        //debugger
+        debugger
         if (!vnode) {
           if (oldVnode) {
             invokeDestroyHook(oldVnode);
@@ -4814,6 +4824,7 @@
               }
               // either not server-rendered, or hydration failed.
               // create an empty node and replace it
+              // 要么不服务器渲染，要么水化失败。创建一个空节点并替换它
               oldVnode = emptyNodeAt(oldVnode);
             }
             // replacing existing element
@@ -5045,6 +5056,7 @@
 
     function updateClass(oldVnode, vnode) {
       var el = vnode.elm;
+      // 说了data 里面存放 真实个各种属性
       var data = vnode.data;
       var oldData = oldVnode.data;
       if (!data.staticClass && !data.class &&
@@ -5094,6 +5106,7 @@
     }
 
     function updateDOMListeners(oldVnode, vnode) {
+      debugger
       if (!oldVnode.data.on && !vnode.data.on) {
         return
       }
@@ -5111,6 +5124,7 @@
     /*  */
 
     function updateDOMProps(oldVnode, vnode) {
+      debugger
       if (!oldVnode.data.domProps && !vnode.data.domProps) {
         return
       }
@@ -5184,6 +5198,7 @@
     }
 
     function isInputChanged(vnode, newVal) {
+      debugger
       var value = vnode.elm.value;
       var modifiers = vnode.elm._vModifiers; // injected by v-model runtime
       if ((modifiers && modifiers.number) || vnode.elm.type === 'number') {
@@ -5375,6 +5390,7 @@
     * SVG elements in IE
     */
     function removeClass(el, cls) {
+      debugger
       /* istanbul ignore if */
       if (!cls || !cls.trim()) {
         return
@@ -8328,10 +8344,12 @@
     function compile$1(template,
       options) {
       debugger
+      // 不知道这个位置返回的结果是不是虚拟dom vnode
       var ast = parse(template.trim(), options);
       debugger
       optimize(ast, options);
       debugger
+      // 生成with语法
       var code = generate(ast, options);
       debugger
       return {
@@ -8875,7 +8893,7 @@
           options.staticRenderFns = staticRenderFns;
         }
       }
-      //////debugger
+      //debugger
       return mount.call(this, el, hydrating)
     };
 
