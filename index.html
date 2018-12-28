@@ -10,10 +10,6 @@
 <body>
   <div id="btn">
     <input type="text" v-model="a.message">
-    <!-- <p>{{test1}}</p> -->
-    <p :key="'333'">{{name}}</p>
-    <div>1</div>
-    <button @click="handleClick">button</button>
   </div>
 </body>
 <!-- <pre><p>{{data}}</p></pre> -->
@@ -22,15 +18,17 @@
 </html>
 <script>
   var app = document.getElementById('btn')
-  //%c  是比较加的
-  // console.log(`%c ${app.outerHTML}`, 'background:red;color:#fff')
-  // console.log('22')
+  // console.log(`%c ${app.outerHTML}`, 'background:red;color:#fff');
+  // console.log('22');
 </script>
 <script src="./vue.js"></script>
 <script>
   var app = new Vue({
     el: '#btn',
     data: {
+      a: {
+        message: 'xxx'
+      },
       name: 'vue解析',
       // count: 99,
       // obj: {

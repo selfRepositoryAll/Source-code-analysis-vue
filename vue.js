@@ -6630,11 +6630,12 @@
               parseEndTag(endTagMatch[0], endTagMatch[1], curIndex, index);
               continue
             }
-            ////////debugger
+            debugger
             // Start tag:
             /**
             * parseStartTag() 非常重要
             */
+            debugger;
             var startTagMatch = parseStartTag();
             console.log('startTagMatch');
             console.dir(startTagMatch)
@@ -8348,10 +8349,10 @@
     */
     function compile$1(template,
       options) {
-      //debugger
+      debugger
       // 不知道这个位置返回的结果是不是虚拟dom vnode
       var ast = parse(template.trim(), options);
-      //debugger
+      debugger
       optimize(ast, options);
       //debugger
       // 生成with语法
